@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-tpm/tpm2"
 	"github.com/google/go-tpm/tpm2/transport/simulator"
+	"github.com/stretchr/testify/require"
 )
 
 func TestQuote(t *testing.T) {
@@ -68,7 +69,6 @@ func TestQuote(t *testing.T) {
 			},
 		},
 		InPublic:    public,
-		CreationPCR: pcrSelection,
 	}
 	rspSigner, err := createPrimarySigner.Execute(thetpm)
 	if err != nil {
@@ -87,7 +87,6 @@ func TestQuote(t *testing.T) {
 			},
 		},
 		InPublic:    public,
-		CreationPCR: pcrSelection,
 	}
 	unique := tpm2.NewTPMUPublicID(
 		tpm2.TPMAlgRSA,
@@ -122,6 +121,7 @@ func TestQuote(t *testing.T) {
 		InScheme: tpm2.TPMTSigScheme{
 			Scheme: tpm2.TPMAlgNull,
 		},
+		PCRSelect: pcrSelection,
 	}
 
 	rspQuote, err := quote.Execute(thetpm)
@@ -159,8 +159,17 @@ func TestQuote(t *testing.T) {
 	}
 	if err := rsa.VerifyPKCS1v15(rsaPub, crypto.SHA256, attestHash[:], rsassa.Sig.Buffer); err != nil {
 		t.Errorf("Signature verification failed: %v", err)
-	}
+	}	
 	if !cmp.Equal(originalBuffer, quoted.ExtraData.Buffer) {
 		t.Errorf("Attested buffer is different from original buffer")
 	}
+
+	// Check TPMS_QUOTE_INFO
+	// See definition in Part 2: Structures, section 10.12.4.
+	quotePayload, err := quoted.Attested.Quote()
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	require.NotEmpty(t, len(quotePayload.PCRDigest.Buffer), "PCR digest shouldn't be empty")
+	require.Equal(t, len(pcrSelection.PCRSelections), len(quotePayload.PCRSelect.PCRSelections))
 }
