@@ -68,7 +68,7 @@ func TestQuote(t *testing.T) {
 				},
 			},
 		},
-		InPublic:    public,
+		InPublic: public,
 	}
 	rspSigner, err := createPrimarySigner.Execute(thetpm)
 	if err != nil {
@@ -86,7 +86,7 @@ func TestQuote(t *testing.T) {
 				},
 			},
 		},
-		InPublic:    public,
+		InPublic: public,
 	}
 	unique := tpm2.NewTPMUPublicID(
 		tpm2.TPMAlgRSA,
@@ -159,7 +159,7 @@ func TestQuote(t *testing.T) {
 	}
 	if err := rsa.VerifyPKCS1v15(rsaPub, crypto.SHA256, attestHash[:], rsassa.Sig.Buffer); err != nil {
 		t.Errorf("Signature verification failed: %v", err)
-	}	
+	}
 	if !cmp.Equal(originalBuffer, quoted.ExtraData.Buffer) {
 		t.Errorf("Attested buffer is different from original buffer")
 	}
