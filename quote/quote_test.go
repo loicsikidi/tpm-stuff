@@ -13,7 +13,7 @@ import (
 )
 
 func TestQuote(t *testing.T) {
-	thetpm := testutil.OpenTPM(t)
+	thetpm := testutil.OpenSimulator(t)
 
 	Auth := []byte("password")
 

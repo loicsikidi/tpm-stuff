@@ -7,7 +7,7 @@ import (
 	"github.com/google/go-tpm/tpm2/transport/simulator"
 )
 
-func OpenTPM(t *testing.T) transport.TPM {
+func OpenSimulator(t *testing.T) transport.TPM {
 	thetpm, err := simulator.OpenSimulator()
 	if err != nil {
 		t.Fatalf("could not connect to TPM simulator: %v", err)

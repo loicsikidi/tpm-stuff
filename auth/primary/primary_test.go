@@ -10,7 +10,7 @@ import (
 
 // TestHierarchyAuth demonstrates that primary key creation is protected by hierarchy authorization.
 func TestHierarchyAuth(t *testing.T) {
-	thetpm := testutil.OpenTPM(t)
+	thetpm := testutil.OpenSimulator(t)
 
 	authPwd := []byte("mysecret")
 	hca := tpm2.HierarchyChangeAuth{
@@ -40,7 +40,7 @@ func TestHierarchyAuth(t *testing.T) {
 
 // TestPrimaryKeyAuth demonstrates that primary key usage is protected by key authorization.
 func TestPrimaryKeyAuth(t *testing.T) {
-	thetpm := testutil.OpenTPM(t)
+	thetpm := testutil.OpenSimulator(t)
 
 	authPwd := []byte("mysecret")
 	srkHandle, err := tpmutil.CreatePrimary(thetpm, tpmutil.CreatePrimaryConfig{

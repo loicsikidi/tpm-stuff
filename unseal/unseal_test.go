@@ -22,7 +22,7 @@ var sealTemplate = tpm2.TPMTPublic{
 
 // TestUnsealCreatePrimary tests the unsealing of data using a primary key.
 func TestUnsealCreatePrimary(t *testing.T) {
-	thetpm := testutil.OpenTPM(t)
+	thetpm := testutil.OpenSimulator(t)
 
 	dataToSeal := []byte("secret")
 
@@ -74,7 +74,7 @@ func TestUnsealCreatePrimary(t *testing.T) {
 }
 
 func TestUnsealCreate(t *testing.T) {
-	thetpm := testutil.OpenTPM(t)
+	thetpm := testutil.OpenSimulator(t)
 
 	dataToSeal := []byte("secret")
 	skrHandle, err := tpmutil.CreatePrimary(thetpm, tpmutil.CreatePrimaryConfig{
