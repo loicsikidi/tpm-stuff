@@ -8,16 +8,12 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-tpm/tpm2"
-	"github.com/google/go-tpm/tpm2/transport/simulator"
+	"github.com/loicsikidi/tpm-stuff/internal/testutil"
 	"github.com/stretchr/testify/require"
 )
 
 func TestQuote(t *testing.T) {
-	thetpm, err := simulator.OpenSimulator()
-	if err != nil {
-		t.Fatalf("could not connect to TPM simulator: %v", err)
-	}
-	defer thetpm.Close()
+	thetpm := testutil.OpenTPM(t)
 
 	Auth := []byte("password")
 
