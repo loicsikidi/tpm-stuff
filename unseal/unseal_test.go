@@ -9,16 +9,44 @@ import (
 	"github.com/loicsikidi/tpm-stuff/internal/testutil"
 )
 
-var sealTemplate = tpm2.TPMTPublic{
-	Type:    tpm2.TPMAlgKeyedHash,
-	NameAlg: tpm2.TPMAlgSHA256,
-	ObjectAttributes: tpm2.TPMAObject{
-		FixedTPM:     true,
-		FixedParent:  true,
-		UserWithAuth: true,
-		NoDA:         true,
-	},
-}
+var (
+	sealTemplate = tpm2.TPMTPublic{
+		Type:    tpm2.TPMAlgKeyedHash,
+		NameAlg: tpm2.TPMAlgSHA256,
+		ObjectAttributes: tpm2.TPMAObject{
+			FixedTPM:     true,
+			FixedParent:  true,
+			UserWithAuth: true,
+			NoDA:         true,
+		},
+	}
+	appKeyTemplate = tpm2.TPMTPublic{
+		Type:    tpm2.TPMAlgECC,
+		NameAlg: tpm2.TPMAlgSHA256,
+		ObjectAttributes: tpm2.TPMAObject{
+			FixedTPM:            true,
+			FixedParent:         true,
+			SensitiveDataOrigin: true,
+			UserWithAuth:        true,
+			SignEncrypt:         true,
+		},
+		Parameters: tpm2.NewTPMUPublicParms(
+			tpm2.TPMAlgECC,
+			&tpm2.TPMSECCParms{
+				Scheme: tpm2.TPMTECCScheme{
+					Scheme: tpm2.TPMAlgECDSA,
+					Details: tpm2.NewTPMUAsymScheme(
+						tpm2.TPMAlgECDSA,
+						&tpm2.TPMSSigSchemeECDSA{
+							HashAlg: tpm2.TPMAlgSHA256,
+						},
+					),
+				},
+				CurveID: tpm2.TPMECCNistP256,
+			},
+		),
+	}
+)
 
 // TestUnsealCreatePrimary tests the unsealing of data using a primary key.
 func TestUnsealCreatePrimary(t *testing.T) {
@@ -132,6 +160,25 @@ func TestUnsealCreate(t *testing.T) {
 			t.Fatalf("unsealed data does not match got %s, expected %s", unsealRsp.OutData.Buffer, dataToSeal)
 		}
 	})
+
+	t.Run("ensure that non-storage keys cannot be used for sealing", func(t *testing.T) {
+		appKeyHandle, err := tpmutil.Create(thetpm, tpmutil.CreateConfig{
+			ParentHandle: skrHandle,
+			InPublic:     appKeyTemplate,
+		})
+		if err != nil {
+			t.Fatalf("could not create key: %v", err)
+		}
+		defer appKeyHandle.Close()
+
+		if _, err := tpmutil.Create(thetpm, tpmutil.CreateConfig{
+			ParentHandle: appKeyHandle,
+			InPublic:     sealTemplate,
+			SealingData:  dataToSeal,
+		}); err == nil {
+			t.Fatalf("expected error when creating sealed data with non-storage key, but succeeded")
+		}
+	})
 }
 
 // TestSealDataSizeLimits tests the size limits for sealed data based on NameAlg.
@@ -161,16 +208,8 @@ func TestSealDataSizeLimits(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
-			template := tpm2.TPMTPublic{
-				Type:    tpm2.TPMAlgKeyedHash,
-				NameAlg: tc.nameAlg,
-				ObjectAttributes: tpm2.TPMAObject{
-					FixedTPM:     true,
-					FixedParent:  true,
-					UserWithAuth: true,
-					NoDA:         true,
-				},
-			}
+			template := sealTemplate
+			template.Type = tpm2.TPMAlgKeyedHash
 
 			// Test with data at maximum size - should succeed
 			dataAtMax := make([]byte, tc.maxSize)
