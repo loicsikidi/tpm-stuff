@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-tpm v0.9.8-0.20251124160146-9312d3e61676
-	github.com/loicsikidi/go-tpm-kit v0.5.1-0.20260102135645-02a0d9e5a4b1
+	github.com/loicsikidi/go-tpm-kit v0.5.1-0.20260104111625-25d1e9b075a2
 	github.com/stretchr/testify v1.10.0
 )
 
